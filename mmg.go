@@ -336,6 +336,15 @@ func (g *GUI) buildComposeTab() *fyne.Container {
         g.messageEnt.SetText("")
     })
 
+    // Button: Clear Clipboard
+    clearClipboardButton := widget.NewButton("Clear Clipboard", func() {
+        err := clipboard.WriteAll("")
+        if err != nil {
+            dialog.ShowError(fmt.Errorf("Failed to clear clipboard: %v", err), g.window)
+            return
+        }
+    })
+
     // Button: Send Email
     sendButton := widget.NewButton("Send Email", g.sendEmail)
 
@@ -343,6 +352,7 @@ func (g *GUI) buildComposeTab() *fyne.Container {
         layout.NewSpacer(),
         pasteButton,
         clearButton,
+        clearClipboardButton, // Fügen Sie den neuen Button hier ein
         sendButton,
         layout.NewSpacer(),
     )
@@ -357,7 +367,6 @@ func (g *GUI) buildComposeTab() *fyne.Container {
         container.NewScroll(g.messageEnt),
     )
 }
-
 func (g *GUI) buildConfigTab() *fyne.Container {
     loadButton := widget.NewButton("Load Config", func() {
         g.loadConfig()
