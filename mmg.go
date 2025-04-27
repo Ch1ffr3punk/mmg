@@ -352,7 +352,7 @@ func (g *GUI) buildComposeTab() *fyne.Container {
         layout.NewSpacer(),
         pasteButton,
         clearButton,
-        clearClipboardButton, // Fügen Sie den neuen Button hier ein
+        clearClipboardButton,
         sendButton,
         layout.NewSpacer(),
     )
