@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	fyne.io/fyne/v2 v2.6.0
 	github.com/atotto/clipboard v0.1.4
+	golang.org/x/crypto v0.37.0
 	golang.org/x/net v0.39.0
 	gopkg.in/yaml.v2 v2.4.0
 )
