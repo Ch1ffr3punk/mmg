@@ -7,6 +7,7 @@ import (
     "encoding/json"
     "fmt"
     "math/big"
+    "mime"
     "net/smtp"
     "os"
     "os/exec"
@@ -80,6 +81,7 @@ type GUI struct {
     configFile       *widget.Entry
     smtpLogLabel     *widget.Label
     themeEntry       *widget.Entry
+    encodeMIMESubjectEntry *widget.Entry
     esubKeyEntry        *widget.Entry
     hashcashBitsEntry   *widget.Entry
     hashcashReceiverEntry *widget.Entry
@@ -164,6 +166,34 @@ func (e *esub) esubgen() string {
 	return hex.EncodeToString(append(nonce, ciphertext...))
 }
 
+type encodeMIMESubject struct {
+    Subject string
+}
+
+func (e encodeMIMESubject) encodeMIMESubject() string {
+	if e.Subject == "" {
+		return ""
+	}
+
+	encoded := mime.BEncoding.Encode("UTF-8", e.Subject)
+
+	parts := strings.Split(encoded, "?=")
+	if len(parts) <= 1 {
+		return encoded
+	}
+
+	var result string
+	for i, part := range parts[:len(parts)-1] {
+		if i > 0 {
+			result += ""
+		}
+		result += part + "?=\n"
+	}
+	result += parts[len(parts)-1]
+
+	return strings.TrimSuffix(result, "\n")
+}
+
 func (g *GUI) showEsubDialog() {
     keyEntry := widget.NewEntry()
     keyEntry.SetText(g.esubKeyEntry.Text)
@@ -232,14 +262,40 @@ func (g *GUI) showHashcashDialog() {
     dialog.ShowCustom("Hashcash Generator", "Close", content, g.window)
 }
 
+func (g *GUI) showencodeMIMESubjectDialog() {
+    content := container.NewVBox(
+        widget.NewLabel("Enter your Subject:"),
+        g.encodeMIMESubjectEntry,
+        widget.NewButton("Convert", func() {
+            if g.encodeMIMESubjectEntry.Text == "" {
+                dialog.ShowError(fmt.Errorf("Subject cannot be empty"), g.window)
+                return
+            }
+            s := encodeMIMESubject{Subject: g.encodeMIMESubjectEntry.Text}
+            encodeMIMESubjectStr := s.encodeMIMESubject()
+            err := clipboard.WriteAll(encodeMIMESubjectStr)
+            if err != nil {
+                dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
+                return
+            }
+            dialog.ShowInformation("Success", "MIME encoded Subject: copied to clipboard:\n"+encodeMIMESubjectStr, g.window)
+        }),
+    )
+
+    dialog.ShowCustom("MIME Subject: Encoder", "Close", content, g.window)
+}
+
 func (g *GUI) createMiscMenu() *fyne.Menu {
     esubItem := fyne.NewMenuItem("esub", func() {
         g.showEsubDialog()
     })
-    hashcashItem := fyne.NewMenuItem("Hashcash", func() {
+    hashcashItem := fyne.NewMenuItem("hashcash", func() {
         g.showHashcashDialog()
     })
-    return fyne.NewMenu("Tools", esubItem, hashcashItem)
+    SubjectItem := fyne.NewMenuItem("MIME", func() {
+        g.showencodeMIMESubjectDialog()
+    })
+    return fyne.NewMenu("Tools", esubItem, hashcashItem, SubjectItem)
 }
 
 func (g *GUI) loadConfig() {
@@ -608,6 +664,7 @@ func NewGUI() *GUI {
         templateDesc:    widget.NewEntry(),
         templateEditor:  widget.NewMultiLineEntry(),
         statusLabel:     widget.NewLabel("Ready to send"),
+        encodeMIMESubjectEntry: widget.NewEntry(),
         esubKeyEntry:   widget.NewEntry(),
         hashcashBitsEntry:   widget.NewEntry(),
         hashcashReceiverEntry: widget.NewEntry(),
@@ -626,6 +683,7 @@ func (g *GUI) ShowAndRun() {
     g.hashcashBitsEntry = widget.NewEntry()
     g.hashcashReceiverEntry = widget.NewEntry()
     g.configFile = widget.NewEntry()
+    g.encodeMIMESubjectEntry = widget.NewEntry()
 
     miscMenu := g.createMiscMenu()
     mainMenu := fyne.NewMainMenu(miscMenu)
