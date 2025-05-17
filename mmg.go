@@ -214,7 +214,7 @@ func (g *GUI) showEsubDialog() {
                     dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
                     return
                 }
-                // dialog.ShowInformation("Success", "esub copied to clipboard.", g.window)
+                g.statusLabel.SetText("esub copied to clipboard.")
             }),
             layout.NewSpacer(),
         ),
@@ -257,7 +257,7 @@ func (g *GUI) showHashcashDialog() {
                     dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
                     return
                 }
-                // dialog.ShowInformation("Success.", "Hashcash copied to clipboard.", g.window)
+                g.statusLabel.SetText("hashcash token copied to clipboard.")
             }),
             layout.NewSpacer(),
         ),
@@ -283,7 +283,7 @@ func (g *GUI) showencodeMIMESubjectDialog() {
                     dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
                     return
                 }
-                // dialog.ShowInformation("Success.", "MIME encoded Subject: copied to clipboard.", g.window)
+                g.statusLabel.SetText("MIME encoded Subject: copied to clipboard.")
             }),
             layout.NewSpacer(),
         ),
