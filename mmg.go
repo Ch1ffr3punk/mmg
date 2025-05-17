@@ -197,68 +197,71 @@ func (e encodeMIMESubject) encodeMIMESubject() string {
 func (g *GUI) showEsubDialog() {
     keyEntry := widget.NewEntry()
     keyEntry.SetText(g.esubKeyEntry.Text)
-
     content := container.NewVBox(
         widget.NewLabel("Enter your key:"),
         keyEntry,
-        widget.NewButton("Generate", func() {
-            if keyEntry.Text == "" {
-                dialog.ShowError(fmt.Errorf("Key cannot be empty"), g.window)
-                return
-            }
-            e := esub{key: keyEntry.Text}
-            esubStr := e.esubgen()
-            err := clipboard.WriteAll(esubStr)
-            if err != nil {
-                dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
-                return
-            }
-            dialog.ShowInformation("Success", "esub generated and copied to clipboard:\n"+esubStr, g.window)
-        }),
+        container.New(layout.NewHBoxLayout(),
+            layout.NewSpacer(),
+            widget.NewButton("Generate", func() {
+                if keyEntry.Text == "" {
+                    dialog.ShowError(fmt.Errorf("Key cannot be empty"), g.window)
+                    return
+                }
+                e := esub{key: keyEntry.Text}
+                esubStr := e.esubgen()
+                err := clipboard.WriteAll(esubStr)
+                if err != nil {
+                    dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
+                    return
+                }
+                // dialog.ShowInformation("Success", "esub copied to clipboard.", g.window)
+            }),
+            layout.NewSpacer(),
+        ),
     )
-
     dialog.ShowCustom("esub Generator", "Close", content, g.window)
 }
 
 func (g *GUI) showHashcashDialog() {
     bitsEntry := widget.NewEntry()
     bitsEntry.SetText(g.hashcashBitsEntry.Text)
-
     receiverEntry := widget.NewEntry()
     receiverEntry.SetText(g.hashcashReceiverEntry.Text)
-
     content := container.NewVBox(
         widget.NewLabel("Bits:"),
         bitsEntry,
         widget.NewLabel("Receiver:"),
         receiverEntry,
-        widget.NewButton("Generate", func() {
-            _, err := exec.LookPath("hashcash")
-            if err != nil {
-                dialog.ShowError(fmt.Errorf("hashcash is not installed"), g.window)
-                return
-            }
-            if runtime.GOOS == "linux" {
-                if _, err := exec.LookPath("xclip"); err != nil {
-                    dialog.ShowError(fmt.Errorf("xclip is not installed"), g.window)
+        container.New(layout.NewHBoxLayout(),
+            layout.NewSpacer(),
+            widget.NewButton("Generate", func() {
+                _, err := exec.LookPath("hashcash")
+                if err != nil {
+                    dialog.ShowError(fmt.Errorf("hashcash is not installed"), g.window)
                     return
                 }
-            }
-            cmd := exec.Command("hashcash", "-mb"+bitsEntry.Text, "-z", "12", "-r", receiverEntry.Text)
-            out, err := cmd.Output()
-            if err != nil {
-                dialog.ShowError(fmt.Errorf("Failed to generate hashcash: %v", err), g.window)
-                return
-            }
-            err = clipboard.WriteAll(string(out))
-            if err != nil {
-                dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
-                return
-            }
-            dialog.ShowInformation("Success", "Hashcash token generated and copied to clipboard!", g.window)
-        }),
+                if runtime.GOOS == "linux" {
+                    if _, err := exec.LookPath("xclip"); err != nil {
+                        dialog.ShowError(fmt.Errorf("xclip is not installed"), g.window)
+                        return
+                    }
+                }
+                cmd := exec.Command("hashcash", "-mb"+bitsEntry.Text, "-z", "12", "-r", receiverEntry.Text)
+                out, err := cmd.Output()
+                if err != nil {
+                    dialog.ShowError(fmt.Errorf("Failed to generate hashcash: %v", err), g.window)
+                    return
+                }
+                err = clipboard.WriteAll(string(out))
+                if err != nil {
+                    dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
+                    return
+                }
+                // dialog.ShowInformation("Success.", "Hashcash copied to clipboard.", g.window)
+            }),
+            layout.NewSpacer(),
+        ),
     )
-
     dialog.ShowCustom("Hashcash Generator", "Close", content, g.window)
 }
 
@@ -266,22 +269,25 @@ func (g *GUI) showencodeMIMESubjectDialog() {
     content := container.NewVBox(
         widget.NewLabel("Enter your Subject:"),
         g.encodeMIMESubjectEntry,
-        widget.NewButton("Convert", func() {
-            if g.encodeMIMESubjectEntry.Text == "" {
-                dialog.ShowError(fmt.Errorf("Subject cannot be empty"), g.window)
-                return
-            }
-            s := encodeMIMESubject{Subject: g.encodeMIMESubjectEntry.Text}
-            encodeMIMESubjectStr := s.encodeMIMESubject()
-            err := clipboard.WriteAll(encodeMIMESubjectStr)
-            if err != nil {
-                dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
-                return
-            }
-            dialog.ShowInformation("Success", "MIME encoded Subject: copied to clipboard:\n"+encodeMIMESubjectStr, g.window)
-        }),
+        container.New(layout.NewHBoxLayout(),
+            layout.NewSpacer(),
+            widget.NewButton("Convert", func() {
+                if g.encodeMIMESubjectEntry.Text == "" {
+                    dialog.ShowError(fmt.Errorf("Subject cannot be empty"), g.window)
+                    return
+                }
+                s := encodeMIMESubject{Subject: g.encodeMIMESubjectEntry.Text}
+                encodeMIMESubjectStr := s.encodeMIMESubject()
+                err := clipboard.WriteAll(encodeMIMESubjectStr)
+                if err != nil {
+                    dialog.ShowError(fmt.Errorf("Failed to copy to clipboard: %v", err), g.window)
+                    return
+                }
+                // dialog.ShowInformation("Success.", "MIME encoded Subject: copied to clipboard.", g.window)
+            }),
+            layout.NewSpacer(),
+        ),
     )
-
     dialog.ShowCustom("MIME Subject: Encoder", "Close", content, g.window)
 }
 
