@@ -75,7 +75,7 @@ type GUI struct {
     hostEnt          *widget.Entry
     portEnt          *widget.Entry
     messageEnt       *widget.Entry
-    statusLabel      *widget.Label
+    statusLabel      *widget.Entry
     copiedHeaders    string
     copiedBody       string
     configFile       *widget.Entry
@@ -91,7 +91,7 @@ var fixedSalt = []byte("61546a8cbbe0957d")
 
 const (
 	argon2Time    = 1
-	argon2Memory  = 64 * 1024 // 64 MB
+	argon2Memory  = 64 * 1024
 	argon2Threads = 4
 	argon2KeyLen  = 32
 )
@@ -113,16 +113,16 @@ func (e *esub) deriveKey() []byte {
 	key := argon2.IDKey(
 		[]byte(e.key),
 		salt,
-		3,      // iterations
-		64*1024, // 64MB memory
-		4,      // threads
-		32,     // output key length (32 bytes for ChaCha20)
+		3,
+		64*1024,
+		4,
+		32,
 	)
 	return key
 }
 
 func (e *esub) esubtest() bool {
-	if len(e.subject) != 48 { // 48 hex chars = 24 bytes
+	if len(e.subject) != 48 {
 		return false
 	}
 
@@ -554,7 +554,14 @@ func (g *GUI) buildTemplateEditor() *fyne.Container {
 func (g *GUI) buildComposeTab() *fyne.Container {
     g.messageEnt = widget.NewMultiLineEntry()
     g.messageEnt.TextStyle = fyne.TextStyle{Monospace: true}
-    g.statusLabel = widget.NewLabel("Ready to send")
+    
+    g.statusLabel = widget.NewMultiLineEntry()
+    g.statusLabel.Wrapping = fyne.TextWrapWord
+    g.statusLabel.TextStyle = fyne.TextStyle{Monospace: true}
+    g.statusLabel.SetText("Ready to send")
+    
+    scrollStatus := container.NewScroll(g.statusLabel)
+    scrollStatus.SetMinSize(fyne.NewSize(0, 60))
 
     pasteButton := widget.NewButton("Paste Template", func() {
         content, err := clipboard.ReadAll()
@@ -594,7 +601,7 @@ func (g *GUI) buildComposeTab() *fyne.Container {
 
     return container.NewBorder(
         nil,
-        container.NewVBox(buttonContainer, g.statusLabel),
+        container.NewVBox(buttonContainer, scrollStatus),
         nil, nil,
         container.NewScroll(g.messageEnt),
     )
@@ -669,13 +676,18 @@ func NewGUI() *GUI {
         templateName:    widget.NewEntry(),
         templateDesc:    widget.NewEntry(),
         templateEditor:  widget.NewMultiLineEntry(),
-        statusLabel:     widget.NewLabel("Ready to send"),
+        statusLabel:     widget.NewMultiLineEntry(),
         encodeMIMESubjectEntry: widget.NewEntry(),
         esubKeyEntry:   widget.NewEntry(),
         hashcashBitsEntry:   widget.NewEntry(),
         hashcashReceiverEntry: widget.NewEntry(),
         themeEntry:      widget.NewEntry(),
     }
+    gui.statusLabel.Wrapping = fyne.TextWrapWord
+    gui.statusLabel.Disable()
+    gui.statusLabel.SetText("Ready to send")
+    gui.statusLabel.TextStyle = fyne.TextStyle{Monospace: true}
+    
     return gui
 }
 
