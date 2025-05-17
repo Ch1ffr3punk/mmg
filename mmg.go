@@ -780,7 +780,7 @@ func (g *GUI) sendEmail() {
 
     parts := strings.SplitN(rawContent, "\r\n\r\n", 2)
     if len(parts) == 2 {
-        rawContent = parts[0] + "\r\n" + messageIDHeader + dateHeader + "\r\n\r\n" + parts[1]
+        rawContent = parts[0] + "\r\n" + messageIDHeader + dateHeader + "\r\n" + parts[1]
     } else {
         rawContent = rawContent + "\r\n" + messageIDHeader + dateHeader + "\r\n"
     }
