@@ -1,12 +1,12 @@
-module mmg
+module minimailer
 
-go 1.24.2
+go 1.24.5
 
 require (
-	fyne.io/fyne/v2 v2.6.0
+	fyne.io/fyne/v2 v2.6.1
 	github.com/atotto/clipboard v0.1.4
-	golang.org/x/crypto v0.37.0
-	golang.org/x/net v0.39.0
+	golang.org/x/crypto v0.40.0
+	golang.org/x/net v0.42.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -39,7 +39,7 @@ require (
 	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/yuin/goldmark v1.7.8 // indirect
 	golang.org/x/image v0.24.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -197,12 +197,19 @@ func (e encodeMIMESubject) encodeMIMESubject() string {
 func (g *GUI) showEsubDialog() {
     keyEntry := widget.NewEntry()
     keyEntry.SetText(g.esubKeyEntry.Text)
-    content := container.NewVBox(
+
+    dialogContent := container.NewVBox(
         widget.NewLabel("Enter your key:"),
         keyEntry,
-        container.New(layout.NewHBoxLayout(),
-            layout.NewSpacer(),
-            widget.NewButton("Generate", func() {
+    )
+
+    dialog.NewCustomConfirm(
+        "esub Generator",
+        "Generate",
+        "Cancel",
+        dialogContent,
+        func(confirmed bool) {
+            if confirmed {
                 if keyEntry.Text == "" {
                     dialog.ShowError(fmt.Errorf("Key cannot be empty"), g.window)
                     return
@@ -215,11 +222,12 @@ func (g *GUI) showEsubDialog() {
                     return
                 }
                 g.statusLabel.SetText("esub copied to clipboard.")
-            }),
-            layout.NewSpacer(),
-        ),
-    )
-    dialog.ShowCustom("esub Generator", "Close", content, g.window)
+            } else {
+                g.statusLabel.SetText("esub generation cancelled.")
+            }
+        },
+        g.window,
+    ).Show()
 }
 
 func (g *GUI) showHashcashDialog() {
@@ -227,14 +235,21 @@ func (g *GUI) showHashcashDialog() {
     bitsEntry.SetText(g.hashcashBitsEntry.Text)
     receiverEntry := widget.NewEntry()
     receiverEntry.SetText(g.hashcashReceiverEntry.Text)
-    content := container.NewVBox(
+
+    dialogContent := container.NewVBox(
         widget.NewLabel("Bits:"),
         bitsEntry,
         widget.NewLabel("Receiver:"),
         receiverEntry,
-        container.New(layout.NewHBoxLayout(),
-            layout.NewSpacer(),
-            widget.NewButton("Generate", func() {
+    )
+
+    dialog.NewCustomConfirm(
+        "Hashcash Generator",
+        "Generate",
+        "Cancel",
+        dialogContent,
+        func(confirmed bool) {
+            if confirmed {
                 _, err := exec.LookPath("hashcash")
                 if err != nil {
                     dialog.ShowError(fmt.Errorf("hashcash is not installed"), g.window)
@@ -258,20 +273,27 @@ func (g *GUI) showHashcashDialog() {
                     return
                 }
                 g.statusLabel.SetText("hashcash token copied to clipboard.")
-            }),
-            layout.NewSpacer(),
-        ),
-    )
-    dialog.ShowCustom("Hashcash Generator", "Close", content, g.window)
+            } else {
+                g.statusLabel.SetText("Hashcash generation cancelled.")
+            }
+        },
+        g.window,
+    ).Show()
 }
 
 func (g *GUI) showencodeMIMESubjectDialog() {
-    content := container.NewVBox(
+    dialogContent := container.NewVBox(
         widget.NewLabel("Enter your Subject:"),
         g.encodeMIMESubjectEntry,
-        container.New(layout.NewHBoxLayout(),
-            layout.NewSpacer(),
-            widget.NewButton("Convert", func() {
+    )
+
+    dialog.NewCustomConfirm(
+        "MIME Subject: Encoder",
+        "Convert",
+        "Cancel",
+        dialogContent,
+        func(confirmed bool) {
+            if confirmed {
                 if g.encodeMIMESubjectEntry.Text == "" {
                     dialog.ShowError(fmt.Errorf("Subject cannot be empty"), g.window)
                     return
@@ -284,11 +306,12 @@ func (g *GUI) showencodeMIMESubjectDialog() {
                     return
                 }
                 g.statusLabel.SetText("MIME encoded Subject: copied to clipboard.")
-            }),
-            layout.NewSpacer(),
-        ),
-    )
-    dialog.ShowCustom("MIME Subject: Encoder", "Close", content, g.window)
+            } else {
+                g.statusLabel.SetText("MIME subject encoding cancelled.")
+            }
+        },
+        g.window,
+    ).Show()
 }
 
 func (g *GUI) createMiscMenu() *fyne.Menu {
