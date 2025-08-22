@@ -51,6 +51,7 @@ type Config struct {
     HashcashBits     string `yaml:"hashcash_bits"`
     HashcashReceiver string `yaml:"hashcash_receiver"`
     Theme            string `yaml:"theme"`
+    OmitAutoHeaders  bool   `yaml:"omit_auto_headers"`
 }
 
 type Template struct {
@@ -85,6 +86,7 @@ type GUI struct {
     esubKeyEntry        *widget.Entry
     hashcashBitsEntry   *widget.Entry
     hashcashReceiverEntry *widget.Entry
+    omitHeadersCheck    *widget.Check
 }
 
 var fixedSalt = []byte("61546a8cbbe0957d")
@@ -361,6 +363,7 @@ func (g *GUI) loadConfig() {
     g.hashcashBitsEntry.SetText(config.HashcashBits)
     g.hashcashReceiverEntry.SetText(config.HashcashReceiver)
     g.themeEntry.SetText(config.Theme)
+    g.omitHeadersCheck.SetChecked(config.OmitAutoHeaders) // Neue Zeile
     
     if config.Theme == "light" {
         g.app.Settings().SetTheme(theme.LightTheme())
@@ -401,6 +404,7 @@ func (g *GUI) saveConfig() {
         HashcashBits:     g.hashcashBitsEntry.Text,
         HashcashReceiver: g.hashcashReceiverEntry.Text,
         Theme:            themeValue,
+        OmitAutoHeaders:  g.omitHeadersCheck.Checked, // Neue Zeile
     }
     data, err := yaml.Marshal(&config)
     if err != nil {
@@ -634,6 +638,9 @@ func (g *GUI) buildConfigTab() *fyne.Container {
     g.themeEntry = widget.NewEntry()
     g.themeEntry.SetPlaceHolder("Enter 'light' or 'dark'")
     g.themeEntry.SetText("dark")
+    
+    g.omitHeadersCheck = widget.NewCheck("Omit auto Message-ID and Date", func(checked bool) {})
+    g.omitHeadersCheck.SetChecked(false)
 
     loadButton := widget.NewButton("Load Config", g.loadConfig)
     saveButton := widget.NewButton("Save Config", func() {
@@ -657,6 +664,7 @@ func (g *GUI) buildConfigTab() *fyne.Container {
             widget.NewFormItem("Hashcash Bits", g.hashcashBitsEntry),
             widget.NewFormItem("Hashcash Receiver", g.hashcashReceiverEntry),
             widget.NewFormItem("Theme (light/dark)", g.themeEntry),
+            widget.NewFormItem("Omit auto headers", g.omitHeadersCheck), // Neue Zeile
         ),
         container.NewHBox(loadButton, saveButton),
     )
@@ -725,6 +733,7 @@ func (g *GUI) ShowAndRun() {
     g.hashcashReceiverEntry = widget.NewEntry()
     g.configFile = widget.NewEntry()
     g.encodeMIMESubjectEntry = widget.NewEntry()
+    g.omitHeadersCheck = widget.NewCheck("", nil)
 
     miscMenu := g.createMiscMenu()
     mainMenu := fyne.NewMainMenu(miscMenu)
@@ -806,11 +815,13 @@ func (g *GUI) sendEmail() {
     }
 
     var messageIDHeader, dateHeader string
-    if _, exists := headers["message-id"]; !exists {
-        messageIDHeader = fmt.Sprintf("Message-ID: %s\r\n", generateMessageID())
-    }
-    if _, exists := headers["date"]; !exists {
-        dateHeader = fmt.Sprintf("Date: %s\r\n", time.Now().UTC().Format(time.RFC1123Z))
+    if !g.omitHeadersCheck.Checked {
+        if _, exists := headers["message-id"]; !exists {
+            messageIDHeader = fmt.Sprintf("Message-ID: %s\r\n", generateMessageID())
+        }
+        if _, exists := headers["date"]; !exists {
+            dateHeader = fmt.Sprintf("Date: %s\r\n", time.Now().UTC().Format(time.RFC1123Z))
+        }
     }
 
     parts := strings.SplitN(rawContent, "\r\n\r\n", 2)
@@ -825,7 +836,7 @@ func (g *GUI) sendEmail() {
     })
 
     go func() {
-        updateStatus := func(text string) {
+                updateStatus := func(text string) {
             fyne.Do(func() {
                 g.statusLabel.SetText(text)
             })
